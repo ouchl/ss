@@ -1,3 +1,5 @@
+wget -O- 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /etc/chnroute.txt
+
 ipset -N chnroute hash:net maxelem 65536
 
 for ip in $(cat '/etc/chnroute.txt'); do
@@ -21,8 +23,7 @@ iptables -t nat -A SHADOWSOCKS -d 224.0.0.0/4 -j RETURN
 iptables -t nat -A SHADOWSOCKS -d 240.0.0.0/4 -j RETURN
 
 # 直连中国 IP
-iptables -t nat -A SHADOWSOCKS -p tcp -m set --match-set chnroute dst -j RETURN
-iptables -t nat -A SHADOWSOCKS -p icmp -m set --match-set chnroute dst -j RETURN
+iptables -t nat -A SHADOWSOCKS -m set --match-set chnroute dst -j RETURN
 
 # 重定向到 ss-redir 端口
 iptables -t nat -A SHADOWSOCKS -p tcp -j REDIRECT --to-port 1080
@@ -35,3 +36,5 @@ iptables -t mangle -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port 1080 --t
 # Apply the rules
 iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS
 iptables -t mangle -A PREROUTING -j SHADOWSOCKS
+
+ss-redir -u -c /etc/config/shadowsocks.json -f /var/run/shadowsocks.pid
