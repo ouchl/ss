@@ -5,6 +5,7 @@ for ip in $(cat '/etc/chnroute.txt'); do
 done
 
 iptables -t nat -N SHADOWSOCKS
+iptables -t mangle -N SHADOWSOCKS
 
 # 直连服务器 IP
 iptables -t nat -A SHADOWSOCKS -d 35.236.173.130/24 -j RETURN
